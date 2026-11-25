@@ -1,0 +1,9 @@
+{
+  "round_id": "LC-01",
+  "anchors": ["U", "V"],
+  "vouchers": [["A", "甲", true], ["B", "乙", true], ["C", "参照凭单丙", false]],
+  "candidates": ["A", "B"],
+  "north": [["U", "V", "0", "A"], ["U", "private-N", "1/3", "B"], ["private-N", "V", "2/3", "B"]],
+  "south": [["V", "U", "-1", "C"]],
+  "north_correction": [["U", "V", "0", "A"], ["U", "private-N", "1/3", "B"], ["private-N", "V", "7/6", "B"]]
+}

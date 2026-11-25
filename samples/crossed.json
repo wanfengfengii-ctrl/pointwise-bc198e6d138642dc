@@ -1,0 +1,8 @@
+{
+  "round_id": "LC-02",
+  "anchors": ["U", "V"],
+  "vouchers": [["A", "甲", true], ["B", "乙", true]],
+  "candidates": ["A", "B"],
+  "north": [["U", "V", "0", "A"], ["V", "U", "-1", "B"]],
+  "south": [["V", "U", "-1", "A"], ["U", "V", "0", "B"]]
+}

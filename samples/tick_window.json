@@ -1,0 +1,20 @@
+{
+  "round_id": "LC-TICK",
+  "anchors": ["U", "V"],
+  "vouchers": [["T", "计时器校验", false]],
+  "revisions": {
+    "north-aligned": {"station": "north", "tick_ms": "1", "rows": [["private-N", "V", "0", "T"], ["V", "private-N", "0", "T"]]},
+    "north-half": {"station": "north", "tick_ms": "1", "parent": "north-aligned", "rows": [["private-N", "V", "1/2", "T"], ["V", "private-N", "-1/2", "T"]]},
+    "north-clipped": {"station": "north", "tick_ms": "1", "parent": "north-half", "rows": [["private-N", "V", "1/2", "T"], ["V", "private-N", "-1/2", "T"], ["V", "U", "-1", "T"]]},
+    "north-isolated": {"station": "north", "tick_ms": "1", "parent": "north-half", "rows": [["private-N", "V", "1/2", "T"], ["V", "private-N", "-1/2", "T"], ["private-J", "private-K", "1/2", "T"], ["private-K", "private-J", "-1/2", "T"]]},
+    "south-free": {"station": "south", "tick_ms": "1", "rows": []},
+    "south-offset": {"station": "south", "tick_ms": "3/2", "parent": "south-free", "rows": [["private-S", "V", "1/2", "T"], ["V", "private-S", "-1/2", "T"]]}
+  },
+  "orders": [
+    {"id": "aligned", "revisions": ["north-aligned", "south-free"], "v1_bounds_ms": [null, null], "windows": [["1/4", "3/4", null]]},
+    {"id": "half", "revisions": ["north-half", "south-free"], "v1_bounds_ms": [null, null], "windows": [["1/4", "3/4", "1/2"]]},
+    {"id": "clipped", "revisions": ["north-clipped", "south-free"], "v1_bounds_ms": ["1", null], "windows": [["1/2", "3/2", "3/2"]]},
+    {"id": "two-ticks", "revisions": ["north-aligned", "south-offset"], "v1_bounds_ms": [null, null], "windows": [["0", "1", null], ["0", "2", "2"], ["2", "2", "2"]]},
+    {"id": "isolated", "revisions": ["north-isolated", "south-free"], "v1_bounds_ms": [null, null], "windows": [["1/4", "3/4", null]]}
+  ]
+}
