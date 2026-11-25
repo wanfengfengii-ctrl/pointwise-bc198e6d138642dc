@@ -3,7 +3,9 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from timing.intake.envelope import V1Envelope, canonical_envelope, decode_envelope
+from timing.intake.v2_envelope import V2Envelope, build_v2_envelope, canonical_v2_envelope, decode_v2_envelope
 from timing.issue.evidence import build_station_evidence, encode_station_body
+from timing.issue.tick import build_tick_qualification
 from timing.source.ledger import SourceLedger
 from timing.source.revisions import load_revision
 from timing.source.rounds import require_number
@@ -26,6 +28,21 @@ class StationPublisher:
                 content TEXT NOT NULL
             )
         ''')
+        db.execute('''
+            CREATE TABLE IF NOT EXISTS issued_stations_v2 (
+                issue_id INTEGER PRIMARY KEY,
+                revision_id INTEGER NOT NULL REFERENCES source_revisions(revision_id),
+                content TEXT NOT NULL
+            )
+        ''')
+
+    def _next_issue_id(self, db) -> int:
+        # V1 and V2 share one station issue numbering space.
+        return db.execute(
+            'SELECT COALESCE(MAX(issue_id), 0) + 1 FROM ('
+            'SELECT issue_id FROM issued_stations UNION ALL '
+            'SELECT issue_id FROM issued_stations_v2)'
+        ).fetchone()[0]
 
     def publish(self, revision_id: int, candidates: Iterable[str] | None = None) -> V1Envelope:
         revision = load_revision(self.ledger, revision_id)
@@ -34,7 +51,7 @@ class StationPublisher:
         db = self.ledger.connection
         db.execute('BEGIN IMMEDIATE')
         with db:
-            issue_id = db.execute('SELECT COALESCE(MAX(issue_id), 0) + 1 FROM issued_stations').fetchone()[0]
+            issue_id = self._next_issue_id(db)
             body = encode_station_body(replace(evidence, issue_id=issue_id))
             envelope = V1Envelope(revision.station_id, issue_id, revision.spec.round_id, revision_id, body)
             db.execute(
@@ -52,3 +69,27 @@ class StationPublisher:
         if row is None:
             raise KeyError(f'unknown issue {issue_id}')
         return decode_envelope(row[0])
+
+    def publish_v2(self, revision_id: int, tick_ms) -> V2Envelope:
+        revision = load_revision(self.ledger, revision_id)
+        db = self.ledger.connection
+        db.execute('BEGIN IMMEDIATE')
+        with db:
+            issue_id = self._next_issue_id(db)
+            qualification = build_tick_qualification(revision, tick_ms, issue_id)
+            envelope = build_v2_envelope(qualification)
+            db.execute(
+                'INSERT INTO issued_stations_v2 VALUES (?, ?, ?)',
+                (issue_id, revision_id, canonical_v2_envelope(envelope)),
+            )
+        return envelope
+
+    def get_issued_v2(self, issue_id: int) -> V2Envelope:
+        db = self.ledger.connection
+        row = db.execute(
+            'SELECT content FROM issued_stations_v2 WHERE issue_id = ?',
+            (require_number(issue_id, 'issue number'),),
+        ).fetchone()
+        if row is None:
+            raise KeyError(f'unknown V2 issue {issue_id}')
+        return decode_v2_envelope(row[0])

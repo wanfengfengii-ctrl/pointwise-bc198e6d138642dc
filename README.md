@@ -9,6 +9,7 @@
 ```sh
 python3 -B demo.py
 python3 -B demo.py crossed
+python3 -B tick_window_demo.py
 python3 -B check_project.py
 ```
 
@@ -26,6 +27,7 @@ python3 -B check_project.py
 | I4 | `review_pair(store, ReviewRequest((left_receipt, right_receipt), (u, v), candidates))` 只查中心库，返回 `ReviewResult`。结果从基准开始，之后逐项保留请求顺序及重复候选。两份不同站点的同轮来件须覆盖所求锚对和每个请求候选。可按反向锚查询。 |
 | I5 | `ArchiveStore(center_connection).initialize()` 在实收初始化后建档案表。将 I4 返回值交给 `build_report_draft(result)`，再通过 `commit_report(archive, draft)` 签发。返回值含正式报告及其回执。 |
 | I6 | `read_by_report(archive, report_id)` 或 `read_by_receipt(archive, receipt_id)` 领取存值，`export_handover(readback)` 生成交接文本。两个编号分别属于报告和定稿回执的编号空间。 |
+| V2 | `StationPublisher.publish_v2(revision_id, tick_ms)` 按正有理整刻度发行 V2 站件，`get_issued_v2(issue_id)` 读取原件；`accept_station_v2(store, text)` 实收并保留同号重投语义；`sign_tick_window(archive, receipt_ids, lo_ms, hi_ms)` 凭同轮异站、锚序相同的两份 V2 实收号签发闭窗内最早共同可行值，`read_tick_window(archive, report_id)` 重开后按报告号领取。 |
 
 相关接口按名称所在模块导入。源端入口位于 `timing.source.ledger`、`timing.source.rounds`、`timing.source.vouchers`、`timing.source.observations`、`timing.source.revisions` 和 `timing.issue.publish`。接纳及复核入口位于 `timing.intake.receipt_store`、`timing.intake.receipts`、`timing.intake.lookup`、`timing.review.request` 和 `timing.review.joint`。档案入口位于 `timing.archive.archive_store`、`timing.archive.reports`、`timing.archive.commit`、`timing.archive.readback` 和 `timing.archive.export`。
 
